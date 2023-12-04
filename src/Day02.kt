@@ -1,6 +1,7 @@
 fun main() {
     val d = Day02()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day02 {
@@ -9,11 +10,19 @@ class Day02 {
     data class Game(val id: Int, val revealed: List<RevealedCubes>) {
         data class RevealedCubes(val red: Int, val green: Int, val blue: Int) {
             fun respectAvailability(): Boolean = red <= 12 && green <= 13 && blue <= 14
+            fun power(): Int = red * green * blue
         }
         fun isValid(): Boolean = revealed.all { it.respectAvailability() }
+        fun minSet(): RevealedCubes = RevealedCubes(
+                revealed.maxOf { it.red },
+                revealed.maxOf { it.green },
+                revealed.maxOf { it.blue }
+        )
     }
 
     fun part1(): Int = parseGames().filter { it.isValid() }.sumOf { it.id }
+
+    fun part2(): Int = parseGames().sumOf { it.minSet().power() }
 
     private fun parseGames(): List<Game> = input.map {
         val (gameId, sets) = it.split(':')
