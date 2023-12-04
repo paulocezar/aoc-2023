@@ -3,6 +3,7 @@ import kotlin.math.abs
 fun main() {
     val d = Day03()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day03 {
@@ -10,14 +11,21 @@ class Day03 {
     val schematic: Schematic = parseSchematic()
 
     fun part1(): Int = schematic.getPartNumbers().sum()
+    fun part2(): Int = schematic.getGears().sumOf { it.part1.number * it.part2.number }
 
     data class Schematic(val numbers: List<Number>, val symbols: List<Symbol>) {
         data class Number(val number: Int, val row: Int, val column: Int, val digits: Int)
-        data class Symbol(val symbol: Char, var row: Int, val column: Int)
+        data class Symbol(val symbol: Char, val row: Int, val column: Int)
+        data class Gear(val symbol: Symbol, val part1: Number, val part2: Number)
 
-        fun getPartNumbers() : List<Int> = numbers.filter {
+        fun getPartNumbers(): List<Int> = numbers.filter {
             number -> symbols.any { symbol -> isAdjacent(number, symbol) }
         }.map { it.number}
+
+        fun getGears(): List<Gear> = symbols.filter { it.symbol == '*' }
+                .map { symbol -> Pair(symbol, numbers.filter { number -> isAdjacent(number, symbol) }) }
+                .filter { it.second.size == 2 }
+                .map { Gear(it.first, it.second[0], it.second[1])}
 
         private fun isAdjacent(number: Number, symbol: Symbol): Boolean {
             if (abs(number.row - symbol.row) > 1) return false
