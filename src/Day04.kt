@@ -1,6 +1,7 @@
 fun main() {
     val d = Day04()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day04 {
@@ -12,11 +13,19 @@ class Day04 {
     }
 
     data class Scratchcard(val winning: List<Int>, val have: List<Int>) {
-        fun points(): Int {
-            val matches = have.filter { winning.contains(it) }.size
-            return when(matches) { 0 -> 0 else -> 1 shl (matches-1)}
-        }
+        val matches = have.filter { winning.contains(it) }.size
+        fun points(): Int = when(matches) { 0 -> 0 else -> 1 shl (matches-1)}
     }
 
     fun part1(): Int = scratchcards.sumOf { it.points() }
+
+    fun part2(): Int {
+        val instances = MutableList(scratchcards.size) { 1 }
+        scratchcards.forEachIndexed { index, scratchcard ->
+            for (won in (index+1)..(index+scratchcard.matches)) {
+                instances[won] += instances[index]
+            }
+        }
+        return instances.sum()
+    }
 }
