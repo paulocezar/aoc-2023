@@ -1,17 +1,18 @@
 fun main() {
-    fun part1(input: List<String>): Int {
-        return input.size
+    val d = Day01()
+    d.part1().println()
+}
+
+class Day01() {
+    private val input: List<String> = readInput(this::class.simpleName!!)
+
+    fun part1(): Int {
+        return input.sumOf { calibrationValue(it) }
     }
 
-    fun part2(input: List<String>): Int {
-        return input.size
+    private fun calibrationValue(line: String): Int {
+        val firstDigit = line.first { it.isDigit() }.digitToInt()
+        val lastDigit = line.last { it.isDigit() }.digitToInt()
+        return 10*firstDigit + lastDigit
     }
-
-    // test if implementation meets criteria from the description, like:
-    val testInput = readInput("Day01_test")
-    check(part1(testInput) == 1)
-
-    val input = readInput("Day01")
-    part1(input).println()
-    part2(input).println()
 }
