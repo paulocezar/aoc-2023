@@ -21,6 +21,11 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
 fun Any?.println() = println(this)
 
 /**
- * Turns a string with space separated integers into a list of ints.
+ * Turns a string with space separated integers into a list of Ints.
  */
 fun String.toIntList() = split(' ').map { it.trim() }.filterNot { it.isEmpty() }.map { it.toInt() }
+
+/**
+ * Turns a string with space separated integers into a list of Longs.
+ */
+fun String.toLongList() = split(' ').map { it.trim() }.filterNot { it.isEmpty() }.map { it.toLong() }
