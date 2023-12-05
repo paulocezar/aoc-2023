@@ -7,8 +7,7 @@ class Day05 {
     private val input: List<String> = readInput(this::class.simpleName!!)
     private val almanac: Almanac = parseAlmanac()
 
-    fun part1() = almanac.seeds.map { almanac.seedToLocation(it) }.min()
-
+    fun part1() = almanac.seeds.minOf { almanac.seedToLocation(it) }
 
     data class Almanac(
             val seeds: List<Long>,
@@ -20,16 +19,26 @@ class Day05 {
             private val temperature_to_humidity: Map,
             private val humidity_to_location: Map)
     {
-        data class Map(private val ranges: List<Triple<Long,Long,Long>>) {
+        data class Map(private val ranges: List<MapRange>) {
+            data class MapRange(val destinationStart: Long, val sourceStart: Long, val length: Long) {
+                val sourceEnd: Long
+                    get() = sourceStart + length
+                fun map(value: Long) = destinationStart + (value - sourceStart)
+            }
+
             fun get(key: Long) : Long {
-                for ((destinationStart, sourceStart, length) in ranges) {
-                    val delta = key - sourceStart
-                    if (delta in 0..<length)
-                        return destinationStart + delta
+                var lo = 0
+                var hi = ranges.size - 1
+                while (lo <= hi) {
+                    val mid = (lo + hi) / 2
+                    if (key < ranges[mid].sourceStart) hi = mid - 1
+                    else if (key >= ranges[mid].sourceEnd) lo = mid + 1
+                    else return ranges[mid].map(key)
                 }
                 return key
             }
         }
+
         fun seedToLocation(seed: Long) = listOf(
                 seed_to_soil,
                 soil_to_fertilizer,
@@ -56,8 +65,9 @@ class Day05 {
                     val range = iterator.next()
                     if (range.isEmpty()) break
                     val (destinationStart, sourceStart, length) = range.toLongList()
-                    add(Triple(destinationStart, sourceStart, length))
+                    add(Almanac.Map.MapRange(destinationStart, sourceStart, length))
                 }
+                sortBy { it.sourceStart }
             })
         }
         val (_, seeds) = iterator.next().split(':')
