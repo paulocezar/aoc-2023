@@ -1,6 +1,7 @@
 fun main() {
     val d = Day10()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day10 {
@@ -8,11 +9,32 @@ class Day10 {
     private val loop = Loop.parse(input)
 
     fun part1() = loop.farthestPipe
+    fun part2() = input.mapIndexed { r, row ->
+        var isInside = 0
+        var cellsInside = 0
+        var ending: Char? = null
+        row.forEachIndexed { c, cell ->
+            if (loop.contains(r, c)) {
+                when (cell) {
+                    '|' -> isInside = 1 - isInside
+                    'L' -> ending = 'J'
+                    'F' -> ending = '7'
+                    '7', 'J' -> {
+                        if (cell != ending!!) isInside = 1-isInside
+                        ending = null
+                    }
+                }
+            } else cellsInside += isInside
+        }
+        cellsInside
+    }.reduce(Int::plus)
 
     data class Loop(
+            private val idOf: (Pair<Int,Int>) -> Int,
             private val start: Int,
             private val pipes: Map<Int, Pair<Int, Int>>) {
         val farthestPipe = pipes.size / 2
+        fun contains(r: Int, c: Int) = pipes.contains(idOf(Pair(r, c)))
 
         companion object {
             fun parse(input: List<String>): Loop {
@@ -33,7 +55,7 @@ class Day10 {
                         }
                     } while (curPos != null)
                 }
-                return Loop(idOf(Pair(r, c)), pipes)
+                return Loop(idOf, idOf(Pair(r, c)), pipes)
             }
 
             private fun neighborDeltas(cell: Char) = when (cell) {
