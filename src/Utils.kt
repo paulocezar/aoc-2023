@@ -23,12 +23,14 @@ fun Any?.println() = println(this)
 /**
  * Turns a string with space separated integers into a list of Ints.
  */
-fun String.toIntList() = split(' ').map { it.trim() }.filterNot { it.isEmpty() }.map { it.toInt() }
+fun String.toIntList(delimiter: Char = ' ') = split(delimiter).map {
+    it.trim() }.filterNot { it.isEmpty() }.map { it.toInt() }
 
 /**
  * Turns a string with space separated integers into a list of Longs.
  */
-fun String.toLongList() = split(' ').map { it.trim() }.filterNot { it.isEmpty() }.map { it.toLong() }
+fun String.toLongList(delimiter: Char = ' ') = split(delimiter).map {
+    it.trim() }.filterNot { it.isEmpty() }.map { it.toLong() }
 
 fun <T> cartesianProduct(sets: List<List<T>>): Sequence<List<T>> = sequence {
     val lengths = ArrayList<Int>()
