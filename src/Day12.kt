@@ -19,21 +19,12 @@ class Day12 {
             if (group == brokenGroups.size) return if (condition.lastIndexOf('#') >= spring) 0 else 1
             if (spring == condition.length) return if (broken == brokenGroups[group]) count(spring, 0, group+1) else 0
             return cache.getOrPut(Triple(spring,broken,group)) {
-                val options = when (condition[spring]) {
-                    '#' -> "#"
-                    '.' -> "."
-                    '?' -> "#."
-                    else -> throw Exception("unexpected spring condition ${condition[spring]}")
-                }
                 var res = 0L
-                options.forEach { state ->
-                    if (state == '.') {
-                        if (broken == 0 || broken == brokenGroups[group])
-                            res += count(spring+1, 0, group + min(broken, 1))
-                    } else {
-                        if (broken+1 <= brokenGroups[group])
-                            res += count(spring+1, broken+1, group)
-                    }
+                if (".?".contains(condition[spring]) && (broken == 0 || broken == brokenGroups[group])) {
+                    res += count(spring+1, 0, group + min(broken, 1))
+                }
+                if ("#?".contains(condition[spring]) && broken < brokenGroups[group]) {
+                    res += count(spring+1, broken+1, group)
                 }
                 res
             }
