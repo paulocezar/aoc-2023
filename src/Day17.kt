@@ -3,12 +3,16 @@ import java.util.PriorityQueue
 fun main() {
     val d = Day17()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day17 {
     private val input: List<String> = readInput(this::class.simpleName!!)
     data class State(val r: Int, val c: Int, val dir: Int)
-    fun part1() : Int {
+    fun part1() = calcHeatLoss(1, 3)
+    fun part2() = calcHeatLoss(4, 10)
+
+    private fun calcHeatLoss(minMoves: Int, maxMoves: Int) : Int {
         val n = input.size
         val m = input[0].length
         val directions = listOf(Pair(0, +1), Pair(+1, 0), Pair(0, -1), Pair(-1, 0))
@@ -26,12 +30,12 @@ class Day17 {
                 var ndist = cdist
                 var nr = cur.r
                 var nc = cur.c
-                for (moves in 1..3) {
+                for (moves in 1..maxMoves) {
                     nr += directions[ndir].first
                     nc += directions[ndir].second
                     if (nr in input.indices && nc in input[0].indices) {
                         ndist += input[nr][nc].digitToInt()
-                        if (ndist < dist[nr][nc][ndir]) {
+                        if (moves >= minMoves && ndist < dist[nr][nc][ndir]) {
                             dist[nr][nc][ndir] = ndist
                             pq.add(Pair(State(nr, nc, ndir), ndist))
                         }
