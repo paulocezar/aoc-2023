@@ -52,3 +52,10 @@ fun <T> cartesianProduct(sets: List<List<T>>): Sequence<List<T>> = sequence {
         yield(result.toList())
     }
 }
+
+fun IntRange.size() = if (isEmpty()) 0 else last - start + 1
+
+fun IntRange.merge(other: IntRange) =
+        if (isEmpty()) this
+        else if (other.isEmpty()) other
+        else (maxOf(first, other.first)..minOf(last, other.last))
