@@ -1,6 +1,7 @@
 fun main() {
     val d = Day19()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day19 {
@@ -10,6 +11,7 @@ class Day19 {
     private val parts = input.subList(input.indexOfFirst { it.isEmpty() } + 1, input.size).map { Part.parse(it) }
 
     fun part1() = parts.filter { isAccepted(it) }.sumOf { it.ratings.values.sum() }
+    fun part2() = acceptedInputs(initialWorkflow, "xmas".associate { it to 1..4000 })
 
     private val initialWorkflow = "in"
     private val acceptanceWorkflow = "A"
@@ -19,6 +21,26 @@ class Day19 {
         var curWorkflow = initialWorkflow
         while (!terminalWorkflows.contains(curWorkflow)) curWorkflow = workflows[curWorkflow]!!.process(p)
         curWorkflow == acceptanceWorkflow
+    }
+
+    private fun acceptedInputs(wkfName: String, inputRanges: Map<Char, IntRange>) : Long {
+        if (wkfName == acceptanceWorkflow) return inputRanges.values.map { it.size().toLong() }.reduce(Long::times)
+        else if (wkfName == rejectionWorkflow) return 0L
+
+        val newRanges = inputRanges.toMutableMap()
+        return workflows[wkfName]!!.rules.sumOf { rule ->
+            when (rule) {
+                is Rule.Unconditional -> acceptedInputs(rule.target, newRanges)
+                is Rule.Conditional -> {
+                    val acceptedRange = newRanges[rule.property]!!.merge(rule.acceptedRange())
+                    val rejectedRange = newRanges[rule.property]!!.merge(rule.rejectedRange())
+                    newRanges[rule.property] = acceptedRange
+                    val acceptedInputs = acceptedInputs(rule.target, newRanges)
+                    newRanges[rule.property] = rejectedRange
+                    acceptedInputs
+                }
+            }
+        }
     }
 
     data class Part(val ratings: Map<Char, Int>) {
@@ -38,7 +60,11 @@ class Day19 {
                 val property: Char,
                 val operator: Char,
                 val threshold: Int,
-                override val target: String) : Rule()
+                override val target: String) : Rule() {
+
+            fun acceptedRange() = if (operator == '<') (1..<threshold) else (threshold+1..4000)
+            fun rejectedRange() = if (operator == '<') (threshold..4000) else (1..threshold)
+        }
 
         data class Unconditional(override val target: String) : Rule()
 
