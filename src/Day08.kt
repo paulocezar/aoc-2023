@@ -32,17 +32,6 @@ class Day08 {
             return steps
         }
 
-        private fun gcd(AA: Long, BB: Long) : Long {
-            var (A, B) = listOf(AA, BB)
-            while (B != 0L) {
-                val ax = B
-                B = A % B
-                A = ax
-            }
-            return A
-        }
-        private fun lcm(A: Long, B: Long) : Long = (A / gcd(A, B)) * B
-
         fun ghostRoute(sourceEnding: Char, destinationEnding: Char) : Long {
             val terminalNodes = labelToId.keys.filter { it.endsWith(destinationEnding) }.map { labelToId[it]!! }.sorted()
             val getCongruences = { label: String ->

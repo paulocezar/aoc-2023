@@ -59,3 +59,15 @@ fun IntRange.merge(other: IntRange) =
         if (isEmpty()) this
         else if (other.isEmpty()) other
         else (maxOf(first, other.first)..minOf(last, other.last))
+
+fun gcd(a: Long, b: Long) : Long {
+    var (aa, bb) = listOf(a, b)
+    while (bb != 0L) {
+        val ax = bb
+        bb = aa % bb
+        aa = ax
+    }
+    return aa
+}
+
+fun lcm(a: Long, b: Long) : Long = (a / gcd(a, b)) * b
