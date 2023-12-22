@@ -1,6 +1,7 @@
 fun main() {
     val d = Day20()
     d.part1().println()
+    d.part2().println()
 }
 
 class Day20 {
@@ -23,12 +24,43 @@ class Day20 {
         pulseCounters.getOrDefault(Pulse.Low, 0) * pulseCounters.getOrDefault(Pulse.High, 0)
     }
 
+    fun part2() = let {
+        val broadcaster = modules.filterIsInstance<Module.Broadcaster>().single()
+        val rx = modules.single { it.name == "rx" }
+        val rxChecker = modules.single { it.destinations.contains(rx) }
+        if (rxChecker !is Module.Conjunction || rxChecker.inputs.size != broadcaster.destinations.size)
+            error("broadcaster not incrementing the same number of counters used to activate rx")
+        broadcaster.destinations.map { initialFF ->
+            if (initialFF !is Module.FlipFlop) error("expected broadcaster to be connected only to counters")
+            if (initialFF.destinations.size > 2) error("invalid counter: too many outputs for least significant bit")
+            val counterReset = initialFF.destinations.filterIsInstance<Module.Conjunction>().single()
+            if (!rxChecker.inputs.contains(counterReset.destinations.filterIsInstance<Module.Conjunction>().single()))
+                error("counter is not feeding rx checker")
+            if (!counterReset.destinations.contains(initialFF)) error("invalid counter: not properly reset")
+            var ff = initialFF.destinations.singleOrNull { it is Module.FlipFlop }
+            var pw = 1L
+            var countTo = 1L
+            while (ff != null) {
+                if (ff.destinations.size !in 1..2) error("invalid counter: flip-flop has extra outputs")
+                if (pw > Long.MAX_VALUE / 2) error("counter is too large")
+                pw *= 2
+                if (ff.destinations.contains(counterReset)) {
+                    countTo += pw
+                    if (counterReset.destinations.contains(ff)) error("invalid counter: not reset to zero")
+                } else if (!counterReset.destinations.contains(ff)) error("invalid counter: not properly reset")
+
+                ff = ff.destinations.singleOrNull { it is Module.FlipFlop }
+            }
+            countTo
+        }.reduce(::lcm)
+    }
+
     enum class Pulse { High, Low }
     data class PulseSent(val type: Pulse, val process: () -> List<PulseSent>)
 
     sealed class Module {
         abstract val name: String
-        protected val inputs = mutableMapOf<String, Pulse>()
+        protected val _inputs = mutableMapOf<Module, Pulse>()
         private val _destinations = mutableListOf<Module>()
         val destinations: List<Module>
             get() = _destinations
@@ -46,9 +78,11 @@ class Day20 {
         }
 
         data class Conjunction(override val name: String) : Module() {
+            val inputs : Collection<Module>
+                get() = _inputs.keys
             override fun receive(pulse: Pulse, fromModule: Module) = let {
-                inputs[fromModule.name] = pulse
-                send(if (inputs.values.all { it == Pulse.High }) Pulse.Low else Pulse.High)
+                _inputs[fromModule] = pulse
+                send(if (_inputs.values.all { it == Pulse.High }) Pulse.Low else Pulse.High)
             }
         }
 
@@ -93,7 +127,7 @@ class Day20 {
                 val modules = modulesAndDestinationsByName.values.map { it.first } + outputModulesByName.values
                 modules.forEach { module ->
                     module.destinations.filter { it is Conjunction }.forEach { conjunction ->
-                        val previous = conjunction.inputs.put(module.name, Pulse.Low)
+                        val previous = conjunction._inputs.put(module, Pulse.Low)
                         if (previous != null)
                             error("${module.name} shows up multiple times as input to ${conjunction.name}")
                     }
